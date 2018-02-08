@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.feuerwehr.kremmen.faxprint;
 
 import java.awt.print.PrinterException;
@@ -50,8 +45,11 @@ public class Watchdog implements Runnable {
     @Override
     public void run() {
         while (true) {
+            LOG.debug("Checking for new files in {}...", folderToMonitor.getAbsolutePath());
+            LOG.debug("CanRead: {}", folderToMonitor.canRead());
             try {
                 File[] folderContents = folderToMonitor.listFiles((File dir, String name) -> {
+                    LOG.info("Checking file {}", name);
                     if (name != null && name.toLowerCase().endsWith("pdf")) {
                         return Boolean.TRUE;
                     } else {
@@ -79,6 +77,7 @@ public class Watchdog implements Runnable {
                         }
                     }
                 }
+                LOG.debug("Sleep...");
                 Thread.sleep(1000 * waitTime);
             } catch (InterruptedException ex) {
                 System.exit(1);
@@ -97,9 +96,7 @@ public class Watchdog implements Runnable {
 
     private void printFile(File f) throws IOException, PrinterException {
         try (PDDocument document = PDDocument.load(f)) {
-
             PrintService myPrintService = findPrintService(printService);
-
             PrinterJob job = PrinterJob.getPrinterJob();
             job.setPageable(new PDFPageable(document));
             job.setPrintService(myPrintService);
